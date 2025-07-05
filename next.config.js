@@ -1,17 +1,21 @@
 /** @type {import('next').NextConfig} */
 const nextConfig = {
   experimental: {
-    appDir: true,
+    // Désactiver React Compiler temporairement
+    // reactCompiler: true,
+    
+    // Garder les autres optimisations
+    optimizePackageImports: ['lucide-react'],
+    staleTimes: {
+      dynamic: 30,
+      static: 180,
+    },
   },
   images: {
-    domains: ['localhost'],
+    formats: ['image/webp', 'image/avif'],
     remotePatterns: [
       {
         protocol: 'https',
-        hostname: '**',
-      },
-      {
-        protocol: 'http',
         hostname: '**',
       },
     ],

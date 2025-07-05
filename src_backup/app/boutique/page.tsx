@@ -7,7 +7,7 @@ import ProductGrid from '@/components/product/ProductGrid';
 import ProductFilters from '@/components/product/ProductFilters';
 import { Button } from '@/components/ui/button';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
-import { LayoutGrid, List, SlidersHorizontal } from 'lucide-react';
+import { Grid3X3, List, SlidersHorizontal } from 'lucide-react';
 
 export const metadata: Metadata = {
     title: 'Boutique - Collection complète de Melhfa',
@@ -139,8 +139,7 @@ export default async function BoutiquePage({
                                 <Tabs defaultValue="grid" className="hidden sm:block">
                                     <TabsList className="grid w-fit grid-cols-2">
                                         <TabsTrigger value="grid" className="px-3">
-                                            <LayoutGrid className="w-4 h-4" />
-
+                                            <Grid3X3 className="w-4 h-4" />
                                         </TabsTrigger>
                                         <TabsTrigger value="list" className="px-3">
                                             <List className="w-4 h-4" />
