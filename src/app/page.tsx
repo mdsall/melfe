@@ -8,6 +8,8 @@ import ProductCard from '@/components/product/ProductCard';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { ArrowRight, Star, Truck, Shield, Heart } from 'lucide-react';
+import './globals.css' // ← CETTE LIGNE EST CRUCIALE
+
 
 // Composants pour les sections de la page d'accueil
 import HeroSection from '@/components/sections/HeroSection';
@@ -71,6 +73,9 @@ export default async function HomePage(): Promise<JSX.Element> {
                     <Button className="bg-white text-black hover:bg-gray-100">
                       Découvrir
                     </Button>
+                    <div className="bg-red-500 text-white p-4 text-center">
+                      🔴 TEST TAILWIND - Si ce texte est rouge, Tailwind fonctionne
+                    </div>
                   </div>
                 </div>
               </div>

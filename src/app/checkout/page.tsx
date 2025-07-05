@@ -515,6 +515,7 @@ export default function CheckoutPage(): JSX.Element {
                             </p>
                         </div>
 
+
                         {/* Retour au panier */}
                         <Button variant="outline" className="w-full" asChild>
                             <Link href="/panier">
