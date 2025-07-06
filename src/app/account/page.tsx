@@ -18,10 +18,10 @@ import {
     CreditCard,
     Settings,
     LogOut,
-    Loader2,
     Package
 } from 'lucide-react';
 import { useRequireAuth } from '@/hooks/useAuth';
+import { MelhfaFullScreenLoader, MelhfaLoader } from '@/components/ui/MelhfaLoader';
 
 export default function AccountPage() {
     const { user, logout, updateUser, isLoading } = useAuth();
@@ -50,11 +50,7 @@ export default function AccountPage() {
     };
 
     if (isLoading || !isAuthenticated) {
-        return (
-            <div className="min-h-screen flex items-center justify-center">
-                <Loader2 className="h-8 w-8 animate-spin" />
-            </div>
-        );
+        return <MelhfaFullScreenLoader text="Connexion en cours..." color="purple" />;
     }
 
     return (
@@ -154,7 +150,7 @@ export default function AccountPage() {
                             <CardContent>
                                 {loadingOrders ? (
                                     <div className="flex justify-center py-8">
-                                        <Loader2 className="h-8 w-8 animate-spin" />
+                                        <MelhfaLoader size="lg" text="Chargement des commandes..." color="blue" />
                                     </div>
                                 ) : orders.length > 0 ? (
                                     <div className="space-y-4">

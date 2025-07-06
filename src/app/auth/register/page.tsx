@@ -2,7 +2,7 @@
 
 import { Suspense } from 'react';
 import { RegisterForm } from '@/components/auth/RegisterForm';
-import { Loader2 } from 'lucide-react';
+import { MelhfaLoader } from '@/components/ui/MelhfaLoader';
 
 export default function RegisterPage() {
     return (
@@ -19,7 +19,7 @@ export default function RegisterPage() {
 
                 <Suspense fallback={
                     <div className="flex justify-center">
-                        <Loader2 className="h-8 w-8 animate-spin" />
+                        <MelhfaLoader size="lg" text="Chargement..." color="purple" />
                     </div>
                 }>
                     <RegisterForm />
@@ -28,4 +28,3 @@ export default function RegisterPage() {
         </div>
     );
 }
-

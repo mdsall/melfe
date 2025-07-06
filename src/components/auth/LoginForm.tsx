@@ -12,9 +12,10 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Alert, AlertDescription } from '@/components/ui/alert';
-import { Eye, EyeOff, Loader2, Mail, Lock } from 'lucide-react';
+import { Eye, EyeOff, Mail, Lock } from 'lucide-react';
 import Link from 'next/link';
 import { useRouter, useSearchParams } from 'next/navigation';
+import { MelhfaInlineLoader } from '@/components/ui/MelhfaLoader';
 
 const loginSchema = z.object({
     username: z.string().min(1, 'Le nom d\'utilisateur est requis'),
@@ -118,10 +119,11 @@ export default function LoginForm() {
                         className="w-full"
                         disabled={isSubmitting || isLoading}
                     >
-                        {(isSubmitting || isLoading) && (
-                            <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                        {(isSubmitting || isLoading) ? (
+                            <MelhfaInlineLoader text="Connexion..." size="sm" color="blue" />
+                        ) : (
+                            'Se connecter'
                         )}
-                        Se connecter
                     </Button>
 
                     <div className="text-center space-y-2">

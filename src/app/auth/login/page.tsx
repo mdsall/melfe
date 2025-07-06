@@ -2,7 +2,7 @@
 
 import { Suspense } from 'react';
 import LoginForm from '@/components/auth/LoginForm';
-import { Loader2 } from 'lucide-react';
+import { MelhfaLoader } from '@/components/ui/MelhfaLoader';
 
 export default function LoginPage() {
     return (
@@ -19,7 +19,7 @@ export default function LoginPage() {
 
                 <Suspense fallback={
                     <div className="flex justify-center">
-                        <Loader2 className="h-8 w-8 animate-spin" />
+                        <MelhfaLoader size="lg" text="Chargement..." color="blue" />
                     </div>
                 }>
                     <LoginForm />

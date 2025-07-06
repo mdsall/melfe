@@ -1,4 +1,4 @@
-// src/components / auth / RegisterForm.tsx
+// src/components/auth/RegisterForm.tsx
 
 'use client';
 
@@ -12,9 +12,10 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Alert, AlertDescription } from '@/components/ui/alert';
-import { Eye, EyeOff, Loader2, Mail, Lock, User } from 'lucide-react';
+import { Eye, EyeOff, Mail, Lock, User } from 'lucide-react';
 import Link from 'next/link';
 import { useRouter, useSearchParams } from 'next/navigation';
+import { MelhfaInlineLoader } from '@/components/ui/MelhfaLoader';
 
 const registerSchema = z.object({
     username: z.string()
@@ -209,10 +210,11 @@ export function RegisterForm() {
                         className="w-full"
                         disabled={isSubmitting || isLoading}
                     >
-                        {(isSubmitting || isLoading) && (
-                            <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                        {(isSubmitting || isLoading) ? (
+                            <MelhfaInlineLoader text="Création du compte..." size="sm" color="purple" />
+                        ) : (
+                            'Créer mon compte'
                         )}
-                        Créer mon compte
                     </Button>
 
                     <div className="text-center text-sm text-gray-600">
