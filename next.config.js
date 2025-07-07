@@ -1,25 +1,35 @@
 /** @type {import('next').NextConfig} */
 const nextConfig = {
-  experimental: {
-    // Désactiver React Compiler temporairement
-    // reactCompiler: true,
-    
-    // Garder les autres optimisations
-    optimizePackageImports: ['lucide-react'],
-    staleTimes: {
-      dynamic: 30,
-      static: 180,
-    },
-  },
   images: {
-    formats: ['image/webp', 'image/avif'],
     remotePatterns: [
       {
-        protocol: 'https',
-        hostname: '**',
+        protocol: 'http',
+        hostname: 'wordpress-hwk484kwgs40k8cggw0ks0c4.45.159.222.88.sslip.io',
+        port: '',
+        pathname: '/wp-content/uploads/**',
       },
+      {
+        protocol: 'https',
+        hostname: 'wordpress-hwk484kwgs40k8cggw0ks0c4.45.159.222.88.sslip.io',
+        port: '',
+        pathname: '/wp-content/uploads/**',
+      },
+      // Autres domaines si nécessaire
+      {
+        protocol: 'https',
+        hostname: 'via.placeholder.com',
+      }
     ],
   },
-}
+  // Votre config CORS si vous l'avez ajoutée
+  async rewrites() {
+    return [
+      {
+        source: '/wp-api/:path*',
+        destination: 'http://wordpress-hwk484kwgs40k8cggw0ks0c4.45.159.222.88.sslip.io/wp-json/:path*',
+      },
+    ];
+  },
+};
 
-module.exports = nextConfig
+module.exports = nextConfig;

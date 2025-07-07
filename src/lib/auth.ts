@@ -15,10 +15,12 @@ const JWT_API_URL = process.env.NEXT_PUBLIC_WC_API_URL;
 export class AuthService {
 
     /**
-     * Connexion utilisateur avec JWT
+     * Connexion utilisateur avec JWT - VERSION SIMPLIFIÉE
      */
     static async login(credentials: LoginCredentials): Promise<AuthResponse> {
         try {
+            console.log('Tentative de connexion à:', `${JWT_API_URL}/wp-json/jwt-auth/v1/token`);
+
             const response = await fetch(`${JWT_API_URL}/wp-json/jwt-auth/v1/token`, {
                 method: 'POST',
                 headers: {
@@ -31,6 +33,7 @@ export class AuthService {
             });
 
             const data = await response.json();
+            console.log('Réponse complète JWT:', data);
 
             if (!response.ok) {
                 return {
@@ -39,17 +42,27 @@ export class AuthService {
                 };
             }
 
-            // Récupérer les infos complètes de l'utilisateur
-            const userInfo = await this.getUserInfo(data.token);
+            // Créer un utilisateur basique avec les données directement disponibles
+            const user: User = {
+                id: 0,
+                username: credentials.username,
+                email: data.user_email || '',
+                firstName: '',
+                lastName: '',
+                displayName: data.user_display_name || data.user_nicename || credentials.username,
+                role: 'customer',
+            };
+
+            console.log('✅ Connexion réussie ! Token reçu:', data.token ? 'Oui' : 'Non');
 
             return {
                 success: true,
                 data: {
                     token: data.token,
-                    user: userInfo,
-                    user_email: data.user_email,
-                    user_nicename: data.user_nicename,
-                    user_display_name: data.user_display_name,
+                    user: user,
+                    user_email: data.user_email || '',
+                    user_nicename: data.user_nicename || '',
+                    user_display_name: data.user_display_name || '',
                 },
             };
         } catch (error) {
@@ -66,6 +79,8 @@ export class AuthService {
      */
     static async register(credentials: RegisterCredentials): Promise<AuthResponse> {
         try {
+            console.log('Tentative de création de compte...');
+
             // Créer le compte utilisateur via WooCommerce REST API
             const customerData = {
                 username: credentials.username,
@@ -76,6 +91,7 @@ export class AuthService {
             };
 
             const response = await api.post('customers', customerData);
+            console.log('Réponse création client:', response.data);
 
             if (response.data) {
                 // Connexion automatique après inscription
@@ -108,47 +124,20 @@ export class AuthService {
     }
 
     /**
-     * Récupérer les informations complètes de l'utilisateur
+     * Récupérer les informations complètes de l'utilisateur - VERSION SIMPLIFIÉE
      */
     static async getUserInfo(token: string): Promise<User> {
-        try {
-            // Valider le token JWT
-            const validateResponse = await fetch(`${JWT_API_URL}/wp-json/jwt-auth/v1/token/validate`, {
-                method: 'POST',
-                headers: {
-                    'Content-Type': 'application/json',
-                    'Authorization': `Bearer ${token}`,
-                },
-            });
-
-            if (!validateResponse.ok) {
-                throw new Error('Token invalide');
-            }
-
-            const userData = await validateResponse.json();
-
-            // Récupérer les données client WooCommerce
-            const customers = await api.get('customers', {
-                email: userData.data.user.user_email
-            });
-
-            const customer = customers.data[0];
-
-            return {
-                id: userData.data.user.ID,
-                username: userData.data.user.user_login,
-                email: userData.data.user.user_email,
-                firstName: customer?.first_name || '',
-                lastName: customer?.last_name || '',
-                displayName: userData.data.user.display_name,
-                role: userData.data.user.roles[0] || 'customer',
-                billing: customer?.billing || undefined,
-                shipping: customer?.shipping || undefined,
-            };
-        } catch (error) {
-            console.error('Erreur lors de la récupération des infos utilisateur:', error);
-            throw error;
-        }
+        // Pour l'instant, retournons un utilisateur basique
+        // On implémentera la récupération complète plus tard
+        return {
+            id: 0,
+            username: 'utilisateur',
+            email: '',
+            firstName: '',
+            lastName: '',
+            displayName: 'Utilisateur connecté',
+            role: 'customer',
+        };
     }
 
     /**
@@ -174,7 +163,7 @@ export class AuthService {
     }
 
     /**
-     * Valider un token JWT
+     * Valider un token JWT - VERSION SIMPLIFIÉE
      */
     static async validateToken(token: string): Promise<boolean> {
         try {
@@ -186,35 +175,19 @@ export class AuthService {
                 },
             });
 
+            console.log('Validation token:', response.ok);
             return response.ok;
         } catch (error) {
+            console.log('Erreur validation token:', error);
             return false;
         }
     }
 
     /**
-     * Rafraîchir un token JWT
+     * Rafraîchir un token JWT (non implémenté dans le plugin standard)
      */
     static async refreshToken(token: string): Promise<string | null> {
-        try {
-            const response = await fetch(`${JWT_API_URL}/wp-json/jwt-auth/v1/token/refresh`, {
-                method: 'POST',
-                headers: {
-                    'Content-Type': 'application/json',
-                    'Authorization': `Bearer ${token}`,
-                },
-            });
-
-            if (response.ok) {
-                const data = await response.json();
-                return data.token;
-            }
-
-            return null;
-        } catch (error) {
-            console.error('Erreur lors du rafraîchissement du token:', error);
-            return null;
-        }
+        return null;
     }
 
     /**

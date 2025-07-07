@@ -6,25 +6,26 @@ import { useEffect, useState } from 'react';
 import Link from 'next/link';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent } from '@/components/ui/card';
-import { Badge } from '@/components/ui/badge';
 import {
     CheckCircle,
     Package,
     Truck,
-    Mail,
-    Phone,
-    Download,
     Home,
     ShoppingBag
 } from 'lucide-react';
 
 interface OrderDetails {
-    orderNumber: string;
-    date: string;
+    id: number;
+    number: string;
+    status: string;
     total: string;
-    paymentMethod: string;
-    estimatedDelivery: string;
-    trackingNumber?: string; // Optionnel
+    date_created: string;
+    payment_method: string;
+    billing: {
+        first_name: string;
+        last_name: string;
+        email: string;
+    };
 }
 
 export default function CheckoutSuccessPage() {
@@ -32,194 +33,175 @@ export default function CheckoutSuccessPage() {
     const [isLoading, setIsLoading] = useState(true);
 
     useEffect(() => {
-        // Simuler la récupération des détails de commande
-        const timer = setTimeout(() => {
-            setOrderDetails({
-                orderNumber: `MELHFA-${Date.now().toString().slice(-6)}`,
-                date: new Date().toLocaleDateString('fr-FR'),
-                total: '85.000 MRU',
-                paymentMethod: 'Carte bancaire',
-                estimatedDelivery: new Date(Date.now() + 3 * 24 * 60 * 60 * 1000).toLocaleDateString('fr-FR'),
-                // trackingNumber sera undefined - pas de problème avec l'interface
-            });
-            setIsLoading(false);
-        }, 1000);
+        // Récupérer les détails de la commande depuis localStorage
+        try {
+            const savedOrder = localStorage.getItem('lastOrder');
+            if (savedOrder) {
+                const order = JSON.parse(savedOrder);
+                setOrderDetails(order);
 
-        return () => clearTimeout(timer);
+                // Nettoyer localStorage après récupération
+                localStorage.removeItem('lastOrder');
+            } else {
+                // Pas de commande trouvée, générer des données par défaut
+                setOrderDetails({
+                    id: 0,
+                    number: `MELHFA-${Date.now().toString().slice(-6)}`,
+                    status: 'processing',
+                    total: '0 MRU',
+                    date_created: new Date().toISOString(),
+                    payment_method: 'Paiement à la livraison',
+                    billing: {
+                        first_name: '',
+                        last_name: '',
+                        email: ''
+                    }
+                });
+            }
+        } catch (error) {
+            console.error('Erreur lors de la récupération des détails de commande:', error);
+        } finally {
+            setIsLoading(false);
+        }
     }, []);
+
+    const formatDate = (dateString: string) => {
+        return new Date(dateString).toLocaleDateString('fr-FR', {
+            year: 'numeric',
+            month: 'long',
+            day: 'numeric',
+            hour: '2-digit',
+            minute: '2-digit'
+        });
+    };
+
+    const formatPrice = (price: string | number) => {
+        const numPrice = typeof price === 'string' ? parseFloat(price) : price;
+        return new Intl.NumberFormat('fr-MR', {
+            style: 'currency',
+            currency: 'MRU',
+            minimumFractionDigits: 0,
+        }).format(numPrice);
+    };
 
     if (isLoading) {
         return (
-            <div className="min-h-screen bg-gray-50 pt-20 flex items-center justify-center">
+            <div className="min-h-screen bg-gray-50 flex items-center justify-center">
                 <div className="text-center space-y-4">
                     <div className="w-16 h-16 border-4 border-black border-t-transparent rounded-full animate-spin mx-auto" />
-                    <p className="text-gray-600">Traitement de votre commande...</p>
+                    <p className="text-gray-600">Chargement des détails de commande...</p>
+                </div>
+            </div>
+        );
+    }
+
+    if (!orderDetails) {
+        return (
+            <div className="min-h-screen bg-gray-50 flex items-center justify-center">
+                <div className="text-center">
+                    <h2 className="text-2xl font-bold mb-4">Aucune commande trouvée</h2>
+                    <Button asChild>
+                        <Link href="/boutique">Retour à la boutique</Link>
+                    </Button>
                 </div>
             </div>
         );
     }
 
     return (
-        <div className="min-h-screen bg-gray-50 pt-20">
-            <div className="max-w-4xl mx-auto px-6 py-16">
-                {/* Success Header */}
-                <div className="text-center mb-12">
-                    <div className="w-24 h-24 bg-green-100 rounded-full flex items-center justify-center mx-auto mb-6">
-                        <CheckCircle className="w-12 h-12 text-green-600" />
-                    </div>
+        <div className="min-h-screen bg-gray-50 py-16">
+            <div className="max-w-2xl mx-auto px-4 text-center">
 
-                    <h1 className="text-4xl font-light tracking-wide text-black mb-4">
-                        Commande confirmée !
-                    </h1>
-
-                    <p className="text-xl text-gray-600 mb-2">
-                        Merci pour votre achat
-                    </p>
-
-                    {orderDetails && (
-                        <p className="text-gray-600">
-                            Commande n° <span className="font-medium">{orderDetails.orderNumber}</span>
-                        </p>
-                    )}
+                {/* Icône de succès */}
+                <div className="w-24 h-24 bg-green-100 rounded-full flex items-center justify-center mx-auto mb-8">
+                    <CheckCircle className="w-12 h-12 text-green-600" />
                 </div>
 
-                {/* Order Details */}
-                {orderDetails && (
-                    <div className="grid grid-cols-1 lg:grid-cols-2 gap-8 mb-12">
-                        {/* Order Summary */}
-                        <Card>
-                            <CardContent className="p-6">
-                                <h2 className="text-lg font-medium mb-6 flex items-center gap-2">
-                                    <Package className="w-5 h-5" />
-                                    Détails de la commande
-                                </h2>
+                {/* Message principal */}
+                <h1 className="text-4xl font-bold text-gray-900 mb-4">
+                    Commande confirmée !
+                </h1>
 
-                                <div className="space-y-4">
-                                    <div className="flex justify-between">
-                                        <span className="text-gray-600">Numéro de commande</span>
-                                        <span className="font-medium">{orderDetails.orderNumber}</span>
-                                    </div>
+                <p className="text-xl text-gray-600 mb-2">
+                    Merci {orderDetails.billing.first_name} pour votre achat
+                </p>
 
-                                    <div className="flex justify-between">
-                                        <span className="text-gray-600">Date</span>
-                                        <span className="font-medium">{orderDetails.date}</span>
-                                    </div>
+                <p className="text-gray-600 mb-8">
+                    Votre commande de melhfa authentiques a été enregistrée
+                </p>
 
-                                    <div className="flex justify-between">
-                                        <span className="text-gray-600">Total</span>
-                                        <span className="font-medium text-lg">{orderDetails.total}</span>
-                                    </div>
-
-                                    <div className="flex justify-between">
-                                        <span className="text-gray-600">Paiement</span>
-                                        <Badge variant="secondary">{orderDetails.paymentMethod}</Badge>
-                                    </div>
-
-                                    <div className="border-t pt-4">
-                                        <div className="flex justify-between">
-                                            <span className="text-gray-600">Statut</span>
-                                            <Badge className="bg-green-100 text-green-800">
-                                                Confirmée
-                                            </Badge>
-                                        </div>
-                                    </div>
-                                </div>
-                            </CardContent>
-                        </Card>
-
-                        {/* Delivery Info */}
-                        <Card>
-                            <CardContent className="p-6">
-                                <h2 className="text-lg font-medium mb-6 flex items-center gap-2">
-                                    <Truck className="w-5 h-5" />
-                                    Informations de livraison
-                                </h2>
-
-                                <div className="space-y-4">
-                                    <div className="flex justify-between">
-                                        <span className="text-gray-600">Livraison estimée</span>
-                                        <span className="font-medium">{orderDetails.estimatedDelivery}</span>
-                                    </div>
-
-                                    <div className="flex justify-between">
-                                        <span className="text-gray-600">Méthode</span>
-                                        <span className="font-medium">Livraison standard</span>
-                                    </div>
-
-                                    {orderDetails.trackingNumber ? (
-                                        <div className="flex justify-between">
-                                            <span className="text-gray-600">Suivi</span>
-                                            <Button variant="link" className="p-0 h-auto text-blue-600">
-                                                {orderDetails.trackingNumber}
-                                            </Button>
-                                        </div>
-                                    ) : (
-                                        <div className="bg-blue-50 p-4 rounded-lg">
-                                            <p className="text-sm text-blue-800">
-                                                <strong>Suivi de commande :</strong> Vous recevrez un numéro de suivi par email dès que votre commande sera expédiée.
-                                            </p>
-                                        </div>
-                                    )}
-                                </div>
-                            </CardContent>
-                        </Card>
-                    </div>
-                )}
-
-                {/* Next Steps */}
+                {/* Détails de la commande */}
                 <Card className="mb-8">
                     <CardContent className="p-6">
-                        <h2 className="text-lg font-medium mb-6">Prochaines étapes</h2>
-
-                        <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-                            <div className="text-center">
-                                <div className="w-12 h-12 bg-blue-100 rounded-full flex items-center justify-center mx-auto mb-3">
-                                    <Mail className="w-6 h-6 text-blue-600" />
-                                </div>
-                                <h3 className="font-medium mb-2">Confirmation par email</h3>
-                                <p className="text-sm text-gray-600">
-                                    Vous allez recevoir un email de confirmation avec tous les détails de votre commande.
-                                </p>
+                        <div className="space-y-4">
+                            <div className="flex items-center justify-center gap-2 text-lg">
+                                <Package className="w-5 h-5" />
+                                <span>
+                                    Commande n° <strong>
+                                        {orderDetails.number || `#${orderDetails.id}`}
+                                    </strong>
+                                </span>
                             </div>
 
-                            <div className="text-center">
-                                <div className="w-12 h-12 bg-yellow-100 rounded-full flex items-center justify-center mx-auto mb-3">
-                                    <Package className="w-6 h-6 text-yellow-600" />
+                            <div className="grid grid-cols-1 md:grid-cols-2 gap-4 text-sm">
+                                <div>
+                                    <strong>Total:</strong> {formatPrice(orderDetails.total)}
                                 </div>
-                                <h3 className="font-medium mb-2">Préparation</h3>
-                                <p className="text-sm text-gray-600">
-                                    Votre commande est en cours de préparation dans nos ateliers.
-                                </p>
+                                <div>
+                                    <strong>Paiement:</strong> {orderDetails.payment_method}
+                                </div>
+                                <div>
+                                    <strong>Date:</strong> {formatDate(orderDetails.date_created)}
+                                </div>
+                                <div>
+                                    <strong>Statut:</strong> En traitement
+                                </div>
                             </div>
 
-                            <div className="text-center">
-                                <div className="w-12 h-12 bg-green-100 rounded-full flex items-center justify-center mx-auto mb-3">
-                                    <Truck className="w-6 h-6 text-green-600" />
+                            <div className="text-gray-600 pt-4 border-t">
+                                <div className="flex items-center justify-center gap-2 mb-2">
+                                    <Truck className="w-4 h-4" />
+                                    <span>Livraison estimée : 2-3 jours ouvrables</span>
                                 </div>
-                                <h3 className="font-medium mb-2">Livraison</h3>
-                                <p className="text-sm text-gray-600">
-                                    Livraison estimée le {orderDetails?.estimatedDelivery} à votre adresse.
+                                <p className="text-sm">
+                                    Vous recevrez un SMS de confirmation avec les détails de livraison
                                 </p>
                             </div>
                         </div>
                     </CardContent>
                 </Card>
 
-                {/* Action Buttons */}
-                <div className="flex flex-col sm:flex-row gap-4 justify-center">
-                    <Button size="lg" className="bg-black text-white hover:bg-gray-800" asChild>
-                        <Link href="/boutique">
-                            <ShoppingBag className="w-5 h-5 mr-2" />
-                            Continuer mes achats
-                        </Link>
-                    </Button>
-
-                    <Button variant="outline" size="lg" asChild>
+                {/* Actions */}
+                <div className="space-y-4">
+                    <Button asChild size="lg" className="w-full sm:w-auto">
                         <Link href="/">
-                            <Home className="w-5 h-5 mr-2" />
+                            <Home className="w-4 h-4 mr-2" />
                             Retour à l'accueil
                         </Link>
                     </Button>
+
+                    <div>
+                        <Button variant="outline" asChild className="w-full sm:w-auto">
+                            <Link href="/boutique">
+                                <ShoppingBag className="w-4 h-4 mr-2" />
+                                Continuer mes achats
+                            </Link>
+                        </Button>
+                    </div>
+                </div>
+
+                {/* Informations supplémentaires */}
+                <div className="mt-12 p-6 bg-blue-50 rounded-lg">
+                    <h3 className="font-semibold text-blue-900 mb-2">
+                        Prochaines étapes
+                    </h3>
+                    <ul className="text-sm text-blue-800 space-y-1">
+                        <li>• Votre commande est maintenant dans WooCommerce</li>
+                        <li>• Vous recevrez un SMS de confirmation</li>
+                        <li>• Notre équipe préparera votre commande</li>
+                        <li>• Livraison sous 2-3 jours ouvrables</li>
+                        <li>• Paiement à la réception</li>
+                    </ul>
                 </div>
             </div>
         </div>
