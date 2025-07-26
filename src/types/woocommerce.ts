@@ -100,6 +100,7 @@ export interface WooCommerceProduct {
     meta_data: unknown[];
 }
 
+// Types pour le panier - maintenant dans useCart.ts
 export interface CartItem {
     id: number;
     name: string;
@@ -117,47 +118,16 @@ export interface CartState {
 
 export interface ProductFilters {
     category?: string;
-    priceRange?: {
-        min: number;
-        max: number;
-    };
-    colors?: string[];
-    sizes?: string[];
-    sortBy?: 'price-asc' | 'price-desc' | 'name-asc' | 'name-desc' | 'date-desc';
+    priceRange?: [number, number];
+    inStock?: boolean;
+    onSale?: boolean;
+    search?: string;
+    sortBy?: 'price' | 'date' | 'popularity' | 'rating';
+    sortOrder?: 'asc' | 'desc';
 }
 
 export interface ApiResponse<T> {
     data: T;
     success: boolean;
     message?: string;
-}
-
-// Types pour les couleurs de melhfa
-export interface MelhfaColor {
-    name: string;
-    hex: string;
-    slug: string;
-}
-
-// Types pour les tailles/types de melhfa
-export interface MelhfaSize {
-    name: string;
-    slug: string;
-    description?: string;
-}
-
-// Configuration du site
-export interface SiteConfig {
-    name: string;
-    description: string;
-    url: string;
-    currency: {
-        code: string;
-        symbol: string;
-        position: 'before' | 'after';
-    };
-    shipping: {
-        freeShippingThreshold: number;
-        standardRate: number;
-    };
 }

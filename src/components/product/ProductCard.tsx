@@ -6,11 +6,11 @@ import { useState } from 'react';
 import Link from 'next/link';
 import Image from 'next/image';
 import { WooCommerceProduct } from '@/types/woocommerce';
-import { useCart } from '@/hooks/useCart';
-import { formatPrice, isOnSale, getDiscountPercentage } from '@/lib/woocommerce';
+import { useCart } from '@/contexts/CartContext';
+import { formatPrice, isOnSale, getDiscountPercentage, getColorHex } from '@/lib/woocommerce';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
-import { Eye, ShoppingBag, Heart } from 'lucide-react';
+import { Eye, ShoppingBag, Heart, Plus, Minus, Trash2 } from 'lucide-react';
 import { cn } from '@/lib/utils';
 
 interface ProductCardProps {
@@ -29,7 +29,7 @@ export default function ProductCard({
     className = '',
     showQuickView = true
 }: ProductCardProps): JSX.Element {
-    const { addToCart, isInCart } = useCart();
+    const { addToCart, isInCart, getItemQuantity, updateQuantity, removeFromCart } = useCart();
     const [isHovered, setIsHovered] = useState(false);
     const [selectedColor, setSelectedColor] = useState<string | null>(null);
     const [isAddingToCart, setIsAddingToCart] = useState(false);
@@ -37,6 +37,9 @@ export default function ProductCard({
     const primaryImage = product.images?.[0]?.src || '/placeholder-product.jpg';
     const secondaryImage = product.images?.[1]?.src || primaryImage;
     const discountPercentage = getDiscountPercentage(product);
+    
+    const productInCart = isInCart(product.id);
+    const currentQuantity = getItemQuantity(product.id);
 
     // Extraire les couleurs des attributs du produit
     const colorAttribute = product.attributes?.find(attr =>
@@ -46,13 +49,14 @@ export default function ProductCard({
 
     const colorOptions: ColorOption[] = colorAttribute?.options.map(color => ({
         name: color,
-        hex: getColorHex(color), // Fonction helper pour obtenir le hex
+        hex: getColorHex(color),
     })) || [];
 
     const handleAddToCart = async (): Promise<void> => {
         if (isAddingToCart) return;
 
         setIsAddingToCart(true);
+        console.log('🛒 ProductCard - Tentative d\'ajout:', product.name);
 
         try {
             addToCart({
@@ -62,11 +66,25 @@ export default function ProductCard({
                 image: primaryImage,
             });
 
-            // Simulation d'une petite attente pour l'UX
+            console.log('✅ ProductCard - Produit ajouté avec succès');
             await new Promise(resolve => setTimeout(resolve, 300));
+        } catch (error) {
+            console.error('❌ ProductCard - Erreur ajout:', error);
         } finally {
             setIsAddingToCart(false);
         }
+    };
+
+    const handleQuantityChange = (newQuantity: number) => {
+        if (newQuantity <= 0) {
+            removeFromCart(product.id);
+        } else {
+            updateQuantity(product.id, newQuantity);
+        }
+    };
+
+    const handleRemoveFromCart = () => {
+        removeFromCart(product.id);
     };
 
     return (
@@ -197,63 +215,62 @@ export default function ProductCard({
                     </div>
                 )}
 
-                {/* Add to Cart Button */}
-                <Button
-                    onClick={handleAddToCart}
-                    disabled={isAddingToCart || !product.purchasable}
-                    className={cn(
-                        "w-full bg-black text-white hover:bg-gray-800 text-xs uppercase tracking-wide transition-all duration-300",
-                        isInCart(product.id) && "bg-green-600 hover:bg-green-700"
-                    )}
-                >
-                    {isAddingToCart ? (
-                        "Ajout..."
-                    ) : isInCart(product.id) ? (
-                        <>
-                            <ShoppingBag className="w-4 h-4 mr-2" />
-                            Dans le panier
-                        </>
-                    ) : (
-                        "Ajouter au panier"
-                    )}
-                </Button>
+                {/* Cart Actions */}
+                {!productInCart ? (
+                    /* Bouton d'ajout normal */
+                    <Button
+                        onClick={handleAddToCart}
+                        disabled={isAddingToCart || !product.purchasable}
+                        className="w-full bg-black text-white hover:bg-gray-800 text-xs uppercase tracking-wide transition-all duration-300"
+                    >
+                        {isAddingToCart ? "Ajout..." : "Ajouter au panier"}
+                    </Button>
+                ) : (
+                    /* Contrôles de quantité quand le produit est dans le panier */
+                    <div className="space-y-2">
+                        {/* Indicateur dans le panier */}
+                        <div className="flex items-center justify-center gap-2 p-2 bg-green-50 border border-green-200 rounded text-green-800 text-xs">
+                            <ShoppingBag className="w-3 h-3" />
+                            <span>Dans le panier ({currentQuantity})</span>
+                        </div>
+
+                        {/* Contrôles de quantité */}
+                        <div className="flex items-center gap-2">
+                            <Button
+                                variant="outline"
+                                size="sm"
+                                onClick={() => handleQuantityChange(currentQuantity - 1)}
+                                className="flex-1 h-8"
+                            >
+                                <Minus className="w-3 h-3" />
+                            </Button>
+                            
+                            <span className="px-3 py-1 bg-gray-100 rounded text-sm font-medium min-w-[2rem] text-center">
+                                {currentQuantity}
+                            </span>
+                            
+                            <Button
+                                variant="outline"
+                                size="sm"
+                                onClick={() => handleQuantityChange(currentQuantity + 1)}
+                                className="flex-1 h-8"
+                            >
+                                <Plus className="w-3 h-3" />
+                            </Button>
+                            
+                            <Button
+                                variant="outline"
+                                size="sm"
+                                onClick={handleRemoveFromCart}
+                                className="h-8 px-2 text-red-600 hover:text-red-700 hover:bg-red-50"
+                                title="Supprimer du panier"
+                            >
+                                <Trash2 className="w-3 h-3" />
+                            </Button>
+                        </div>
+                    </div>
+                )}
             </div>
         </div>
     );
-}
-
-// Fonction helper pour obtenir la couleur hex à partir du nom
-function getColorHex(colorName: string): string {
-    const colorMap: { [key: string]: string } = {
-        'noir': '#000000',
-        'black': '#000000',
-        'blanc': '#ffffff',
-        'white': '#ffffff',
-        'rouge': '#e74c3c',
-        'red': '#e74c3c',
-        'bleu': '#3498db',
-        'blue': '#3498db',
-        'vert': '#27ae60',
-        'green': '#27ae60',
-        'jaune': '#f1c40f',
-        'yellow': '#f1c40f',
-        'orange': '#e67e22',
-        'violet': '#8e44ad',
-        'purple': '#8e44ad',
-        'rose': '#e91e63',
-        'pink': '#e91e63',
-        'gris': '#95a5a6',
-        'gray': '#95a5a6',
-        'grey': '#95a5a6',
-        'marron': '#8B4513',
-        'brown': '#8B4513',
-        'beige': '#F5F5DC',
-        'doré': '#FFD700',
-        'gold': '#FFD700',
-        'argenté': '#C0C0C0',
-        'silver': '#C0C0C0',
-    };
-
-    const normalizedName = colorName.toLowerCase().trim();
-    return colorMap[normalizedName] || '#9CA3AF'; // Couleur par défaut
 }

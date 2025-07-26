@@ -1,8 +1,8 @@
-// src/hooks/useCart.ts
+// src/contexts/CartContext.tsx
 
 'use client';
 
-import { useState, useEffect, useCallback } from 'react';
+import React, { createContext, useContext, useState, useEffect, useCallback, ReactNode } from 'react';
 import { CartItem, CartState } from '@/types/woocommerce';
 
 const CART_STORAGE_KEY = 'melhfa_cart';
@@ -25,7 +25,13 @@ const initialCartState: CartState = {
     itemCount: 0,
 };
 
-export const useCart = (): UseCartReturn => {
+const CartContext = createContext<UseCartReturn | undefined>(undefined);
+
+interface CartProviderProps {
+    children: ReactNode;
+}
+
+export function CartProvider({ children }: CartProviderProps) {
     const [cart, setCart] = useState<CartState>(initialCartState);
     const [isHydrated, setIsHydrated] = useState(false);
 
@@ -57,24 +63,23 @@ export const useCart = (): UseCartReturn => {
 
     // Calculer les totaux
     const calculateTotals = useCallback((items: CartItem[]): { total: number; itemCount: number } => {
-        const total = items.reduce((sum, item) => sum + item.total, 0);
+        const total = items.reduce((sum, item) => sum + (parseFloat(item.price) * item.quantity), 0);
         const itemCount = items.reduce((sum, item) => sum + item.quantity, 0);
+        
         return { total, itemCount };
     }, []);
 
     // Ajouter un produit au panier
-    const addToCart = useCallback((
-        item: Omit<CartItem, 'quantity' | 'total'>,
-        quantity: number = 1
-    ) => {
+    const addToCart = useCallback((item: Omit<CartItem, 'quantity' | 'total'>, quantity = 1) => {
         setCart(prevCart => {
-            const existingItemIndex = prevCart.items.findIndex(cartItem => cartItem.id === item.id);
+            const existingItem = prevCart.items.find(cartItem => cartItem.id === item.id);
+
             let newItems: CartItem[];
 
-            if (existingItemIndex >= 0) {
-                // Le produit existe déjà, on augmente la quantité
-                newItems = prevCart.items.map((cartItem, index) => {
-                    if (index === existingItemIndex) {
+            if (existingItem) {
+                // Mettre à jour la quantité si le produit existe déjà
+                newItems = prevCart.items.map(cartItem => {
+                    if (cartItem.id === item.id) {
                         const newQuantity = cartItem.quantity + quantity;
                         return {
                             ...cartItem,
@@ -85,7 +90,7 @@ export const useCart = (): UseCartReturn => {
                     return cartItem;
                 });
             } else {
-                // Nouveau produit
+                // Ajouter un nouveau produit
                 const newItem: CartItem = {
                     ...item,
                     quantity,
@@ -173,7 +178,7 @@ export const useCart = (): UseCartReturn => {
         return cart.itemCount;
     }, [cart.itemCount]);
 
-    return {
+    const contextValue: UseCartReturn = {
         cart,
         addToCart,
         removeFromCart,
@@ -184,4 +189,20 @@ export const useCart = (): UseCartReturn => {
         getTotalPrice,
         getItemCount,
     };
-};
+
+    return (
+        <CartContext.Provider value={contextValue}>
+            {children}
+        </CartContext.Provider>
+    );
+}
+
+export function useCart(): UseCartReturn {
+    const context = useContext(CartContext);
+
+    if (context === undefined) {
+        throw new Error('useCart doit être utilisé dans un CartProvider');
+    }
+
+    return context;
+}

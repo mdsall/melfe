@@ -13,7 +13,75 @@ export const api = new WooCommerceRestApi({
     queryStringAuth: true,
 });
 
-// Fonctions utilitaires pour l'API
+// Fonctions utilitaires pour les prix
+export const formatPrice = (price: string | number, currency: string = 'MRU'): string => {
+    const numPrice = typeof price === 'string' ? parseFloat(price) : price;
+    
+    if (isNaN(numPrice) || numPrice === null || numPrice === undefined) {
+        return '0 MRU';
+    }
+    
+    return `${numPrice.toLocaleString('fr-FR')} ${currency}`;
+};
+
+// Vérifier si un produit est en promotion
+export const isOnSale = (product: WooCommerceProduct): boolean => {
+    return product.on_sale && product.sale_price !== '';
+};
+
+// Calculer le pourcentage de réduction
+export const getDiscountPercentage = (product: WooCommerceProduct): number => {
+    if (!isOnSale(product)) return 0;
+
+    const regularPrice = parseFloat(product.regular_price);
+    const salePrice = parseFloat(product.sale_price);
+
+    if (isNaN(regularPrice) || isNaN(salePrice) || regularPrice === 0) return 0;
+
+    return Math.round(((regularPrice - salePrice) / regularPrice) * 100);
+};
+
+// Obtenir la première image d'un produit
+export const getProductImage = (product: WooCommerceProduct): string => {
+    return product.images && product.images.length > 0 ? product.images[0]!.src : '/placeholder-product.jpg';
+};
+
+// Obtenir toutes les images d'un produit
+export const getProductImages = (product: WooCommerceProduct): string[] => {
+    return product.images ? product.images.map(image => image.src) : [];
+};
+
+// Fonctions utilitaires pour obtenir le hex d'une couleur (pour ProductCard)
+export const getColorHex = (colorName: string): string => {
+    const colorMap: { [key: string]: string } = {
+        'blanc': '#FFFFFF',
+        'blanc cassé': '#F8F8FF',
+        'beige': '#F5F5DC',
+        'crème': '#FFFDD0',
+        'ivoire': '#FFFFF0',
+        'noir': '#000000',
+        'gris': '#808080',
+        'bleu': '#0000FF',
+        'bleu marine': '#000080',
+        'bleu ciel': '#87CEEB',
+        'rouge': '#FF0000',
+        'bordeaux': '#800020',
+        'rose': '#FFC0CB',
+        'vert': '#008000',
+        'vert olive': '#808000',
+        'jaune': '#FFFF00',
+        'orange': '#FFA500',
+        'violet': '#800080',
+        'marron': '#A52A2A',
+        'doré': '#FFD700',
+        'argenté': '#C0C0C0',
+        'multicolore': '#FF6B6B'
+    };
+
+    return colorMap[colorName.toLowerCase()] || '#CCCCCC';
+};
+
+// Service WooCommerce
 export class WooCommerceService {
     // Récupérer tous les produits
     static async getProducts(params?: {
@@ -148,34 +216,3 @@ export class WooCommerceService {
         });
     }
 }
-
-// Fonctions utilitaires pour les prix
-export const formatPrice = (price: string | number, currency: string = 'MRU'): string => {
-    const numPrice = typeof price === 'string' ? parseFloat(price) : price;
-    return `${numPrice.toLocaleString('fr-FR')} ${currency}`;
-};
-
-// Vérifier si un produit est en promotion
-export const isOnSale = (product: WooCommerceProduct): boolean => {
-    return product.on_sale && product.sale_price !== '';
-};
-
-// Calculer le pourcentage de réduction
-export const getDiscountPercentage = (product: WooCommerceProduct): number => {
-    if (!isOnSale(product)) return 0;
-
-    const regularPrice = parseFloat(product.regular_price);
-    const salePrice = parseFloat(product.sale_price);
-
-    return Math.round(((regularPrice - salePrice) / regularPrice) * 100);
-};
-
-// Obtenir la première image d'un produit
-export const getProductImage = (product: WooCommerceProduct): string => {
-    return product.images && product.images.length > 0 ? product.images[0]!.src : '/placeholder-product.jpg';
-};
-
-// Obtenir toutes les images d'un produit
-export const getProductImages = (product: WooCommerceProduct): string[] => {
-    return product.images ? product.images.map(image => image.src) : [];
-};

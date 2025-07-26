@@ -4,8 +4,7 @@
 
 import { useState, useEffect } from 'react';
 import Link from 'next/link';
-import { useCart } from '@/hooks/useCart';
-import { ShoppingBag, Menu, X, Search, User } from 'lucide-react';
+import { useCartActions } from '@/hooks/useCartSync';import { ShoppingBag, Menu, X, Search, User } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import {

@@ -4,8 +4,7 @@
 
 import { useState } from 'react';
 import { WooCommerceProduct } from '@/types/woocommerce';
-import { useCart } from '@/hooks/useCart';
-import { formatPrice, isOnSale, getDiscountPercentage } from '@/lib/woocommerce';
+import { useCartActions } from '@/hooks/useCartSync';import { formatPrice, isOnSale, getDiscountPercentage } from '@/lib/woocommerce';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import {

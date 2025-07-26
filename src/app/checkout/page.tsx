@@ -5,8 +5,7 @@
 import { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import { useAuth } from '@/hooks/useAuth';
-import { useCart } from '@/hooks/useCart';
-import { useHydration } from '@/hooks/useHydration';
+import { useCartActions } from '@/hooks/useCartSync';import { useHydration } from '@/hooks/useHydration';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';

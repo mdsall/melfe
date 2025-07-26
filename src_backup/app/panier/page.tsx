@@ -2,8 +2,7 @@
 
 'use client';
 
-import { useCart } from '@/hooks/useCart';
-import { formatPrice } from '@/lib/woocommerce';
+import { useCartActions } from '@/hooks/useCartSync';import { formatPrice } from '@/lib/woocommerce';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent } from '@/components/ui/card';
 import { Separator } from '@/components/ui/separator';
